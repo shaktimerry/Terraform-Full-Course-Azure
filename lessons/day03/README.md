@@ -30,7 +30,11 @@ export ARM_TENANT_ID=""
 ```
 
 alias tf terraform
+
 tf plan > to check plan there in directory
+
 tf init > initialize terraform
+
 tf validate > validate plan
+
 tf apply > run tf plan
