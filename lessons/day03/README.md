@@ -38,3 +38,5 @@ tf init > initialize terraform
 tf validate > validate plan
 
 tf apply > run tf plan
+
+tf destroy > to delete resources in Azure
