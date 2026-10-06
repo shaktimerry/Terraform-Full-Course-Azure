@@ -49,3 +49,8 @@ Checks the Memory (Statefile): It looks at its diary to see what it last built.
 Inspects Reality (Actual State): It pings the cloud to see what is actually running right now.
 
 Compares to the Code (Desired State): It looks at your blueprint. If the blueprint asks for 3 servers, but the cloud only has 2, Terraform says: "Aha! We are missing one. Let me build it for you."
+
+As this statefile is very imp , instaed of keeping it local we keep it in Cloud call it as Remote Backend.
+Whenever some one runs tf apply this file changes with current infra state.
+Hence lock it (tfstate) so that no one can simultaneously make changes to infra.
+
