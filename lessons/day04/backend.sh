@@ -1,3 +1,6 @@
+It is Just used to create Azure Storage Account > Container to store the statetf file
+No need to create everytime. It just store state file.
+
 #!/bin/bash
 
 RESOURCE_GROUP_NAME=tfstate-day04
