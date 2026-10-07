@@ -52,5 +52,7 @@ Compares to the Code (Desired State): It looks at your blueprint. If the bluepri
 
 As this statefile is very imp , instaed of keeping it local we keep it in Cloud call it as Remote Backend.
 Whenever some one runs tf apply this file changes with current infra state.
-Hence lock it (tfstate) so that no one can simultaneously make changes to infra.
+Hence lock it (tfstate) so that no one can simultaneously make changes to infra. To avoid inconsistency in Infra.
+
+Local tf File ---> Remote Backend ---> Infra Changes
 
