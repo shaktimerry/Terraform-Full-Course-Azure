@@ -1,0 +1,138 @@
+1. variables.tf — Define the input
+************************************
+Declare the variable name, data type, default value (if any), constraints, and validation rules.
+
+Example: VM size must be a string.
+
+2. prod_terraform.tfvars — Supply the value
+************************************
+Provide the actual value you want to use for that environment.
+
+Example: vm_size = "Standard_D2s_v5"
+
+3. main.tf — Use the value
+************************************
+Reference the variable inside a resource using var.variable_name.
+
+Example: size = var.vm_size
+
+Let's start One One Example
+***********************************
+String : 
+***********
+variables.tf >>>
+
+variable "location" {
+  type = string
+}
+
+terraform.tfvars >> location = "Central India"
+main.tf > location = var.location
+
+Number: An integer or decimal number. 
+***********
+variables.tf >
+variable "disk_size_gb" {
+  type = number
+}
+
+terraform.tfvars > disk_size_gb = 128
+main.tf > disk_size_gb = var.disk_size_gb
+
+Bol : Only true or false. 
+*********
+variables.tf
+variable "enable_backup" {
+  type = bool
+}
+
+terraform.tfvars > enable_backup = true
+main.tf > enabled = var.enable_backup
+
+List : Ordered collection; values have the same element type. 
+*********************************
+variables.tf
+
+variable "allowed_ports" {
+  type = list(number)
+}
+
+terraform.tfvars > allowed_ports = [80, 443, 8080]
+main.tf > ports = var.allowed_ports
+
+Set : Unique values; order is not guaranteed. 
+********************************************
+variables.tf >
+variable "allowed_regions" {
+  type = set(string)
+}
+
+terraform.tfvars > allowed_regions = ["Central India", "East US"]
+main.tf > regions = var.allowed_regions
+
+Map : Key-value pairs with the same value type. 
+*****************************************************
+variables.tf >
+variable "tags" {
+  type = map(string)
+}
+
+terraform.tfvars > tags = { Environment = "Prod", Team = "Cloud" }
+main.tf > tags = var.tags
+
+Object : A structured value with named attributes and defined types. 
+*****************************************************************************
+variables.tf >
+
+variable "vm_config" {
+  type = object({
+    name = string
+    size = string
+    disk = number
+  })
+}
+
+terraform.tfvars >
+
+vm_config = {
+  name = "vm-prod-01"
+  size = "Standard_D2s_v5"
+  disk = 128
+}
+
+main.tf >
+name = var.vm_config.name
+size = var.vm_config.size
+
+Tupple : An ordered collection with a specific type for each position. 
+******************************************************************************
+variables.tf >
+
+variable "vm_details" {
+  type = tuple([string, number, bool])
+}
+
+terraform.tfvars > vm_details = ["vm-prod-01", 128, true]
+main.tf > name = var.vm_details[0]
+
+Constraints — how to restrict inputs .. Normally we write condition in variable.tf with variable block
+*****************************************************************************
+Constraints are restrictions that prevent users from providing unwanted values. 
+In Terraform, you commonly enforce them with validation, numeric bounds, nullable, and resource or provider-specific arguments.
+
+Ex : variables.tf >
+
+variable "location" {
+  type        = string
+  description = "Azure deployment region"
+
+  validation {
+    condition = contains(
+      ["Central India", "East US"],
+      var.location
+    )
+    error_message = "Location must be Central India or East US."
+  }
+}
+
+Rest other .tfvar and ,main normally stays same.
