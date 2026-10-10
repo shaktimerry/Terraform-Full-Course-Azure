@@ -1,0 +1,88 @@
+In Terraform, meta-arguments are special arguments that change how Terraform handles a resource. They are not normal resource properties like name, location, or size.
+Think of it this way:
+- Normal arguments → What do you want to create?
+- Meta-arguments → How should Terraform create, manage, or connect it?
+
+The main Terraform meta-arguments
+
+1. count
+Creates multiple instances of a resource.
+resource "azurerm_resource_group" "rg" {
+  count    = 3
+  name     = "rg-dev-${count.index}"
+  location = "Central India"
+}
+
+
+Result: rg-dev-0, rg-dev-1, rg-dev-2
+
+
+
+
+2. for_each
+Creates resources from a map or set, giving each instance a meaningful key.
+resource "azurerm_resource_group" "rg" {
+  for_each = toset(["dev", "qa", "prod"])
+
+  name     = "rg-${each.key}"
+  location = "Central India"
+}
+
+
+Result: rg-dev, rg-qa, rg-prod
+
+
+
+
+3. depends_on
+Explicitly tells Terraform that one resource must wait for another resource.
+resource "azurerm_network_security_group" "nsg" {
+  name                = "nsg-dev"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  depends_on = [
+    azurerm_resource_group.rg
+  ]
+}
+
+
+Use it when Terraform cannot infer the dependency automatically. References often create dependencies without it.
+
+
+
+
+4. lifecycle
+Controls how Terraform handles resource changes, replacement, and deletion.
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-prod"
+  location = "Central India"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+
+Purpose: Protect this resource from Terraform-planned destruction. It is not a complete protection against deletion outside Terraform.
+
+
+
+
+5. provider
+Selects which provider configuration a resource uses.
+resource "azurerm_resource_group" "rg" {
+  provider = azurerm.prod
+
+  name     = "rg-prod"
+  location = "Central India"
+}
+
+
+Useful when managing multiple Azure subscriptions or environments through separate provider configurations.
+
+
+
+
+6. provider_meta
+Passes provider-specific metadata to a provider configuration. This is an advanced feature and is not needed for most everyday Terraform configurations.
