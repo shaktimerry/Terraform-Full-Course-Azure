@@ -1,0 +1,123 @@
+In Terraform, lifecycle is a meta-argument block that controls how Terraform handles a resource during creation, updating, replacement, and destruction.
+For example, imagine you have a production Azure VM. Someone changes a property in main.tf, and Terraform determines that the VM must be replaced. 
+You might want to prevent that replacement or create a new VM before removing the old one.
+That's where lifecycle helps.
+
+All goes into main.tf
+
+1. The different lifecycle rules
+******************************************
+The main lifecycle arguments you should learn are:
+
+create_before_destroy >	Creates the replacement before destroying the existing resource
+prevent_destroy	> Rejects Terraform plans that would destroy the protected resource
+ignore_changes >	Ignores changes to specified attributes when planning updates
+replace_triggered_by >	Replaces a resource when specified resources or resource attributes change
+
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-prod-demo"
+  location = "Central India"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-prod-demo"
+  location = "Central India"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-prod-demo"
+  location = "Central India"
+
+  tags = {
+    environment = "prod"
+    owner       = "terraform"
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+resource "terraform_data" "app_config" {
+  input = var.app_config_version
+}
+
+resource "azurerm_linux_virtual_machine" "app_vm" {
+  # VM configuration goes here
+
+  lifecycle {
+    replace_triggered_by = [
+      terraform_data.app_config
+    ]
+  }
+}
+
+Here, terraform_data is a built-in Terraform resource that can hold data and participate in lifecycle operations.
+How it works
+1. app_config_version changes.
+2. Terraform plans an update to terraform_data.app_config.
+3. Because app_vm has replace_triggered_by referencing that resource, Terraform plans to replace the VM.
+4. The VM replacement follows the applicable dependency and lifecycle rules.
+The VM example above is a syntax illustration; the VM still needs all required arguments to be deployable.
+
+precondition and postcondition
+**********************************************
+These let you define checks that Terraform must satisfy before or after a resource operation.
+A. precondition — validate before proceeding
+*****************************
+Example: Ensure a production deployment uses an approved Azure region.
+variable "location" {
+  type    = string
+  default = "Central India"
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-prod-demo"
+  location = var.location
+
+  lifecycle {
+    precondition {
+      condition = contains(
+        ["Central India", "South India"],
+        var.location
+      )
+
+      error_message = "Use an approved Azure region."
+    }
+  }
+}
+
+
+What happens?
+- If location is Central India, the condition passes.
+- If location is West Europe, Terraform reports the validation error before proceeding with the resource operation.
+Use precondition to enforce resource-specific requirements before Terraform proceeds.
+
+B. postcondition — validate after the operation
+**************************************************************
+Example: Verify that an Azure Resource Group's resulting location matches the requested location.
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-prod-demo"
+  location = "Central India"
+
+  lifecycle {
+    postcondition {
+      condition = self.location == "Central India"
+
+      error_message = "The Resource Group must be in Central India."
+    }
+  }
+}
+
+
+What happens?
+Terraform evaluates the condition against the resource's resulting state. If it fails, Terraform reports an error and may prevent dependent resources from proceeding.
+Use postcondition to check assumptions about a resource's resulting state.
